@@ -1,13 +1,10 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-pub(crate) fn gen_row_struct(
-    struct_ident: &Ident,
-    row_struct_name: &Ident,
-) -> TokenStream {
+pub(crate) fn gen_row_struct(struct_ident: &Ident, row_struct_name: &Ident) -> TokenStream {
     quote! {
         #[derive(Debug)]
-        struct #row_struct_name {
+        pub struct #row_struct_name {
             surreal_ref: surrealdb_schema_derive::SurrealReference<#struct_ident>,
             value: #struct_ident
         }
