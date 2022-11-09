@@ -6,18 +6,22 @@ pub mod runtime;
 
 use std::ops::Deref;
 
-pub use runtime::surreal_value_primitives::*;
-use codegen::*;
+use anyhow::Result;
 use async_trait::async_trait;
+use codegen::*;
 use derive_builder::Builder;
 pub use errors::*;
 use proc_macro2::TokenStream;
-use quote::{quote};
+use quote::quote;
 pub use runtime::reference::SurrealReference;
-pub use runtime::surreal_value_primitives::{SurrealValue, SurrealOption};
-use surrealdb::{self, sql::{self, Id}, Datastore, Session};
+pub use runtime::surreal_value_primitives::*;
+pub use runtime::surreal_value_primitives::{SurrealOption, SurrealValue};
+use surrealdb::{
+    self,
+    sql::{self, Id},
+    Datastore, Session,
+};
 use syn::{parse2, spanned::Spanned, Data, DeriveInput, Fields, FieldsNamed, Ident};
-use anyhow::Result;
 
 #[derive(Clone)]
 pub struct DefineTableContext {
@@ -40,6 +44,8 @@ pub trait SurrealDbObject:
         on_table: &String,
         path_prefix: &Vec<sql::Part>,
     ) -> surrealdb::sql::Statements;
+
+    fn get_table_name() -> String;
 }
 
 #[async_trait]
@@ -54,14 +60,14 @@ pub trait SurrealDbTable: SurrealDbObject {
         session: &Session,
     ) -> Result<Option<Self::Row>>;
 
-    async fn save_to_datastore(
-        self,
-        datastore: &Datastore,
-        session: &Session,
-    ) -> Result<Self::Row>;
+    async fn save_to_datastore(self, datastore: &Datastore, session: &Session)
+        -> Result<Self::Row>;
 }
 
-pub trait SurrealDbRow: Deref<Target = Self::Table> + Into<Self::Table> where Self::Table: Into<SurrealValue> {
+pub trait SurrealDbRow: Deref<Target = Self::Table> + Into<Self::Table>
+where
+    Self::Table: Into<SurrealValue>,
+{
     type Table: SurrealDbTable;
 
     fn new(id: Id, value: Self::Table) -> Self;
@@ -89,6 +95,10 @@ fn gen_surreal_db_object(
 
         impl SurrealDbObject for #struct_ident {
             #fn_get_field_definitions
+
+            fn get_table_name() -> String {
+                stringify!(#struct_ident).into()
+            }
         }
     }));
 }
@@ -100,10 +110,8 @@ pub fn derive_surreal_db_table(_item: TokenStream) -> Result<TokenStream, syn::E
     let row_struct_name = quote::format_ident!("{}Row", struct_ident);
     let row_struct = row_struct::gen_row_struct(&struct_ident, &row_struct_name);
     let fn_define_table = define_statements::gen_fn_define_table(&struct_ident);
-    let fn_fetch_from_datastore =
-        crud_statements::gen_fn_fetch_from_datastore(&struct_ident);
-    let fn_save_to_datastore =
-        crud_statements::gen_fn_save_to_datastore(&struct_ident);
+    let fn_fetch_from_datastore = crud_statements::gen_fn_fetch_from_datastore(&struct_ident);
+    let fn_save_to_datastore = crud_statements::gen_fn_save_to_datastore(&struct_ident);
     return Ok(TokenStream::from(quote! {
         #surreal_db_object
 
@@ -119,9 +127,7 @@ pub fn derive_surreal_db_table(_item: TokenStream) -> Result<TokenStream, syn::E
     }));
 }
 
-fn extract_derive_struct(
-    struct_stream: TokenStream,
-) -> Result<(Ident, FieldsNamed), syn::Error> {
+fn extract_derive_struct(struct_stream: TokenStream) -> Result<(Ident, FieldsNamed), syn::Error> {
     let top_level_error_span = struct_stream.span();
     let input: DeriveInput = parse2(struct_stream)?;
     let ident = input.ident;

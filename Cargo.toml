@@ -1,18 +1,24 @@
 [package]
+edition = "2021"
 name = "surrealdb-schema-derive"
 version = "0.1.0"
-edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-surrealdb-schema-derive-macro = { version = "=0.1.0", path = "macro" }
 surrealdb-schema-derive-impl = {version = "=0.1.0", path = "impl"}
-surrealdb = { version = "1.0.0-beta.8", default-features = false, features=["kv-mem"]}
-async-trait = "0.1.58"
+surrealdb-schema-derive-macro = {version = "=0.1.0", path = "macro"}
+# surrealdb = { version = "1.0.0-beta.8", default-features = false, features=["kv-mem"]}
+
 anyhow = "1.0.66"
+async-trait = "0.1.58"
 
 [workspace]
-members = [".", "impl", "macro"]
 default-members = [".", "impl"]
+members = [".", "impl", "macro"]
 
+[dependencies.surrealdb]
+default-features = false
+features = ["kv-rocksdb", "parallel"]
+path = "../surrealdb/lib"
+version = "^1.0.0-beta.8"
