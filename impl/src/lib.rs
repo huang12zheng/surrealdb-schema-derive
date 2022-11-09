@@ -46,6 +46,8 @@ pub trait SurrealDbObject:
     ) -> surrealdb::sql::Statements;
 
     fn get_table_name() -> String;
+
+    fn get_id(&self) -> u64;
 }
 
 #[async_trait]
@@ -98,6 +100,10 @@ fn gen_surreal_db_object(
 
             fn get_table_name() -> String {
                 stringify!(#struct_ident).into()
+            }
+
+            fn get_id(&self) -> u64 {
+                self.id
             }
         }
     }));
