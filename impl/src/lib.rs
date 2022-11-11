@@ -4,10 +4,8 @@ mod codegen;
 mod errors;
 pub mod runtime;
 
-use std::ops::Deref;
-
 use anyhow::Result;
-use async_trait::async_trait;
+
 use codegen::*;
 use derive_builder::Builder;
 pub use errors::*;
@@ -15,11 +13,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 pub use runtime::surreal_value_primitives::*;
 pub use runtime::surreal_value_primitives::{SurrealOption, SurrealValue};
-use surrealdb::{
-    self,
-    sql::{self, Id},
-    Datastore, Session,
-};
+use surrealdb::{self, Datastore, Session};
 use syn::{parse2, spanned::Spanned, Data, DeriveInput, Fields, FieldsNamed, Ident};
 
 #[derive(Clone)]
@@ -55,7 +49,6 @@ fn gen_surreal_db_object(
     let impl_try_from_surreal_value =
         object_conversion::gen_try_from_surreal_value(&struct_ident, &fields);
     let impl_into_surreal_value = object_conversion::gen_into_surreal_value(&struct_ident, &fields);
-    let fn_get_field_definitions = define_statements::gen_fn_get_field_definitions(&fields);
     return Ok(TokenStream::from(quote! {
         #impl_try_from_surreal_value
         #impl_into_surreal_value
