@@ -1,8 +1,8 @@
+pub use surrealdb_obj_derive_impl::*;
 #[doc(inline)]
-pub use surrealdb_schema_derive_macro::*;
-pub use surrealdb_schema_derive_impl::*;
+pub use surrealdb_obj_derive_macro::*;
 
 // Re-exported so that they can be used inside generated code.
-pub use surrealdb;
-pub use async_trait;
 pub use anyhow;
+pub use async_trait;
+pub use surrealdb;

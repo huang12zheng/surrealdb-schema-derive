@@ -14,52 +14,34 @@ pub(crate) fn gen_try_from_surreal_value(
             if let Some(inner_type) = maybe_extract_optional(field) {
     quote! {
                         
-                        #field_ident: TryInto::<surrealdb_schema_derive::SurrealOption<#inner_type>>::try_into(
-                            surrealdb_schema_derive::SurrealValue(
+                        #field_ident: TryInto::<surrealdb_obj_derive::SurrealOption<#inner_type>>::try_into(
+                            surrealdb_obj_derive::SurrealValue(
                                 object_value.0.get(stringify!(name)).unwrap().clone(),
                             )
                         )?.into()
                     }
             } else {
-                let field_str = format!("{}", field_ident);
-                if field_str.eq("id") {
-                    quote! {
-                        #field_ident: surrealdb_schema_derive::SurrealValue(
-                            {
-                                let id = object_value.0.get(stringify!(#field_ident)).unwrap().clone().record().unwrap().id;
-                                match id {
-                                    Id::Number(v) => Value::from(v),
-                                    Id::String(v) => Value::from(v),
-                                    Id::Array(v) => Value::from(v),
-                                    Id::Object(v) => Value::from(v),
-                                }
-                            }
-                        ).try_into()?
-                    }
-                } else {
-
-                quote! {
-                    #field_ident: surrealdb_schema_derive::SurrealValue(
-                        object_value.0.get(stringify!(#field_ident)).unwrap().clone()
-                    ).try_into()?
-                }
+                 quote! {
+                #field_ident: surrealdb_obj_derive::SurrealValue(
+                    object_value.0.get(stringify!(#field_ident)).unwrap().clone()
+                ).try_into()?
             }
             }
         })
         .collect();
 
     quote! {
-        impl TryFrom<surrealdb_schema_derive::SurrealValue> for #struct_ident {
-            type Error = surrealdb_schema_derive::SurrealDbSchemaDeriveQueryError;
+        impl TryFrom<surrealdb_obj_derive::SurrealValue> for #struct_ident {
+            type Error = surrealdb_obj_derive::SurrealDbSchemaDeriveQueryError;
 
-            fn try_from(value: surrealdb_schema_derive::SurrealValue) -> Result<Self, Self::Error> {
-                if let surrealdb_schema_derive::surrealdb::sql::Value::Object(object_value) = value.0 {
+            fn try_from(value: surrealdb_obj_derive::SurrealValue) -> Result<Self, Self::Error> {
+                if let surrealdb_obj_derive::surrealdb::sql::Value::Object(object_value) = value.0 {
                     Ok(Self {
                         #(#field_definitions),*
                     })
                 } else {
-                    Err(surrealdb_schema_derive::SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
-                        surrealdb_schema_derive::InvalidValueTypeError {
+                    Err(surrealdb_obj_derive::SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
+                        surrealdb_obj_derive::InvalidValueTypeError {
                             expected_type: stringify!(#struct_ident).into(),
                             received_type: value.0.to_string(),
                         }
@@ -77,13 +59,13 @@ pub(crate) fn gen_into_surreal_value(struct_ident: &Ident, fields: &FieldsNamed)
         .map(|field| {
             let field_ident = field.ident.clone().unwrap();
             let field_ref = if maybe_extract_optional(field).is_some() {
-                quote! {surrealdb_schema_derive::SurrealOption(self.#field_ident)}
+                quote! {surrealdb_obj_derive::SurrealOption(self.#field_ident)}
             } else {
                 quote! {self.#field_ident}
             };
             quote! {
                 (stringify!(#field_ident).into(), {
-                    let surreal_value: surrealdb_schema_derive::SurrealValue = #field_ref.into();
+                    let surreal_value: surrealdb_obj_derive::SurrealValue = #field_ref.into();
                     surreal_value.into()
                 })
             }
@@ -91,11 +73,11 @@ pub(crate) fn gen_into_surreal_value(struct_ident: &Ident, fields: &FieldsNamed)
         .collect();
 
     quote! {
-        impl Into<surrealdb_schema_derive::SurrealValue> for #struct_ident {
-            fn into(self) -> surrealdb_schema_derive::SurrealValue {
-                surrealdb_schema_derive::SurrealValue(
-                    surrealdb_schema_derive::surrealdb::sql::Value::Object(
-                        surrealdb_schema_derive::surrealdb::sql::Object(std::collections::BTreeMap::from([
+        impl Into<surrealdb_obj_derive::SurrealValue> for #struct_ident {
+            fn into(self) -> surrealdb_obj_derive::SurrealValue {
+                surrealdb_obj_derive::SurrealValue(
+                    surrealdb_obj_derive::surrealdb::sql::Value::Object(
+                        surrealdb_obj_derive::surrealdb::sql::Object(std::collections::BTreeMap::from([
                             #(#field_conversions),*
                         ]))
                     )

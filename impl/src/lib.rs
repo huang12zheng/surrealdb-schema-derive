@@ -1,4 +1,4 @@
-//! This crate implements the macro for `surrealdb_schema_derive` and should not be used directly.
+//! This crate implements the macro for `surrealdb_obj_derive` and should not be used directly.
 
 mod codegen;
 mod errors;
@@ -13,7 +13,6 @@ use derive_builder::Builder;
 pub use errors::*;
 use proc_macro2::TokenStream;
 use quote::quote;
-pub use runtime::reference::SurrealReference;
 pub use runtime::surreal_value_primitives::*;
 pub use runtime::surreal_value_primitives::{SurrealOption, SurrealValue};
 use surrealdb::{
@@ -41,27 +40,6 @@ pub trait SurrealDbObject:
     TryFrom<SurrealValue, Error = SurrealDbSchemaDeriveQueryError> + Into<SurrealValue>
 {
     fn get_table_name() -> String;
-}
-
-#[async_trait]
-pub trait SurrealDbTable: SurrealDbObject {
-    type Row: std::ops::Deref<Target = Self>;
-
-    async fn fetch_from_datastore(id: u64) -> Result<Option<Self::Row>>;
-
-    async fn save_to_datastore(self) -> Result<Self::Row>;
-    async fn delete_to_datastore(id: u64) -> bool;
-}
-
-pub trait SurrealDbRow: Deref<Target = Self::Table> + Into<Self::Table>
-where
-    Self::Table: Into<SurrealValue>,
-{
-    type Table: SurrealDbTable;
-
-    fn new(id: Id, value: Self::Table) -> Self;
-    fn get_table_name() -> String;
-    fn get_reference(&self) -> &SurrealReference<Self::Table>;
 }
 
 #[doc(hidden)]
@@ -92,32 +70,6 @@ fn gen_surreal_db_object(
 
 
 
-        }
-    }));
-}
-
-#[doc(hidden)]
-pub fn derive_surreal_db_table(_item: TokenStream) -> Result<TokenStream, syn::Error> {
-    let (struct_ident, fields) = extract_derive_struct(_item)?;
-    let surreal_db_object = gen_surreal_db_object(&struct_ident, &fields)?;
-    let row_struct_name = quote::format_ident!("{}Row", struct_ident);
-    let row_struct = row_struct::gen_row_struct(&struct_ident, &row_struct_name);
-    let fn_define_table = define_statements::gen_fn_define_table(&struct_ident);
-    let fn_fetch_from_datastore = crud_statements::gen_fn_fetch_from_datastore(&struct_ident);
-    let fn_save_to_datastore = crud_statements::gen_fn_save_to_datastore(&struct_ident);
-    let fn_delete_to_datastore = crud_statements::gen_fn_delete_to_datastore(&struct_ident);
-    return Ok(TokenStream::from(quote! {
-        #surreal_db_object
-
-        #row_struct
-
-        #[surrealdb_schema_derive::async_trait::async_trait]
-        impl SurrealDbTable for #struct_ident {
-            type Row = #row_struct_name;
-
-            #fn_fetch_from_datastore
-            #fn_save_to_datastore
-            #fn_delete_to_datastore
         }
     }));
 }
@@ -154,7 +106,7 @@ mod tests {
     #[test]
     fn derives_simple_struct() {
         assert!(parse2::<File>(
-            derive_surreal_db_table(quote! {
+            derive_surreal_db_object(quote! {
                 struct MyStruct {
                     name: String,
                     count: u8,
@@ -168,7 +120,7 @@ mod tests {
             "{}",
             prettyplease::unparse(
                 &parse2::<File>(
-                    derive_surreal_db_table(quote! {
+                    derive_surreal_db_object(quote! {
                         struct RustStruct {
                             name: Option<String>,
                             generics: RustGenerics,

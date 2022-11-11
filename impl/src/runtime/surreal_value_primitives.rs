@@ -1,6 +1,6 @@
 use surrealdb::sql::{Thing, Value};
 
-use crate::{errors::InvalidValueTypeError, SurrealDbRow, SurrealDbSchemaDeriveQueryError};
+use crate::errors::InvalidValueTypeError;
 
 pub struct SurrealValue(pub Value);
 
@@ -62,6 +62,7 @@ where
     }
 }
 
+#[macro_export]
 macro_rules! impl_surreal_value_try_from {
     ($variant:pat => $map:expr => $type:ty) => {
         impl TryFrom<SurrealValue> for $type {
@@ -131,6 +132,7 @@ macro_rules! impl_into_surreal_value {
 
 impl_into_surreal_value!(Thing);
 
+#[macro_export]
 macro_rules! impl_int_into_surreal_value {
     ($type:ty) => {
         impl Into<SurrealValue> for $type {
@@ -176,55 +178,5 @@ impl<T: Into<SurrealValue>> From<SurrealOption<T>> for SurrealValue {
         } else {
             SurrealValue(surrealdb::sql::Value::None)
         }
-    }
-}
-
-pub fn surreal_value_to_row<R: SurrealDbRow>(
-    surreal_value: SurrealValue,
-) -> Result<R, SurrealDbSchemaDeriveQueryError> {
-    let SurrealValue(mut value) = surreal_value;
-    let id = if let Value::Object(ref mut object_value) = value {
-        if let Some(id_value) = object_value.get("id") {
-            if let Value::Thing(id_thing) = id_value {
-                Ok(id_thing.id.clone())
-            } else {
-                Err(SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
-                    InvalidValueTypeError {
-                        expected_type: "Thing".into(),
-                        received_type: id_value.to_string(),
-                    },
-                ))
-            }
-        } else {
-            Err(SurrealDbSchemaDeriveQueryError::RowObjectMissingIdColumn)
-        }
-    } else {
-        Err(SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
-            InvalidValueTypeError {
-                expected_type: "Object".into(),
-                received_type: value.to_string(),
-            },
-        ))
-    }?;
-
-    let inner_struct = R::Table::try_from(SurrealValue(value))?;
-    Ok(R::new(id, inner_struct))
-}
-
-pub fn row_to_surreal_value<R: SurrealDbRow>(row: R) -> SurrealValue {
-    let id = row.get_reference().get_id();
-    let inner_value: SurrealValue = row.into().into();
-
-    if let Value::Object(mut object_value) = inner_value.0 {
-        object_value.insert(
-            "id".into(),
-            Value::Thing(Thing {
-                tb: R::get_table_name(),
-                id: id,
-            }),
-        );
-        SurrealValue(Value::Object(object_value))
-    } else {
-        panic!("A generated SurrealDbStruct did not create a surrealdb Object value")
     }
 }
