@@ -1,7 +1,7 @@
-use proc_macro2::{TokenStream, Ident};
-use syn::{FieldsNamed, Field};
-use quote::quote;
 use crate::codegen::types;
+use proc_macro2::{Ident, TokenStream};
+use quote::quote;
+use syn::{Field, FieldsNamed};
 
 pub(crate) fn gen_fn_get_field_definitions(fields: &FieldsNamed) -> TokenStream {
     let stmt_define_fields: Vec<TokenStream> = fields
@@ -81,17 +81,17 @@ pub(crate) fn gen_define_field_with_table_and_path_prefix(field: &Field) -> Toke
 
     if let Some((surreal_type, is_optional)) = types::type_to_surreal_field_type(&field.ty) {
         let assert_property = if is_optional {
-            quote!{Some(surrealdb::sql::Value::Expression(Box::new(
-                surrealdb::sql::Expression { 
+            quote! {Some(surrealdb::sql::Value::Expression(Box::new(
+                surrealdb::sql::Expression {
                     l: surrealdb::sql::Value::Idiom(
                         surrealdb_schema_derive::surrealdb::sql::Idiom(#new_path_prefix)
-                    ), 
+                    ),
                     o: surrealdb::sql::Operator::NotEqual,
                     r: surrealdb::sql::Value::None
                 }
             )))}
         } else {
-            quote!{None}
+            quote! {None}
         };
         quote! {
             surrealdb_schema_derive::surrealdb::sql::Statements(vec![

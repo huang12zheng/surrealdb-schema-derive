@@ -1,11 +1,11 @@
-use surrealdb::sql::{Id, Value, Thing};
+use surrealdb::sql::{Id, Thing, Value};
 use surrealdb::{Datastore, Session};
 
-use crate::{InvalidValueTypeError, SurrealDbSchemaDeriveQueryError, SurrealValue};
-use std::marker::PhantomData;
-use anyhow::Result;
-use crate::runtime::surreal_query_generation;
 use crate::runtime::surreal_execution;
+use crate::runtime::surreal_query_generation;
+use crate::{InvalidValueTypeError, SurrealDbSchemaDeriveQueryError, SurrealValue};
+use anyhow::Result;
+use std::marker::PhantomData;
 
 #[derive(Debug)]
 pub struct SurrealReference<T> {
@@ -74,15 +74,9 @@ where
         self.id.clone()
     }
 
-    pub async fn resolve(
-        &self,
-        datastore: &Datastore,
-        session: &Session,
-    ) -> Result<Option<T>> {
-        let query = surreal_query_generation::make_lookup_query(
-            self.table_name.clone(),
-            self.id.clone()
-        );
+    pub async fn resolve(&self, datastore: &Datastore, session: &Session) -> Result<Option<T>> {
+        let query =
+            surreal_query_generation::make_lookup_query(self.table_name.clone(), self.id.clone());
 
         surreal_execution::run_single_row_query(datastore, session, query).await
     }

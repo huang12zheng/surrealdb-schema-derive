@@ -47,7 +47,10 @@ impl TryFrom<SurrealValue> for bool {
     }
 }
 
-impl<T> TryFrom<SurrealValue> for SurrealOption<T> where T: TryFrom<SurrealValue> {
+impl<T> TryFrom<SurrealValue> for SurrealOption<T>
+where
+    T: TryFrom<SurrealValue>,
+{
     type Error = <T as TryFrom<SurrealValue>>::Error;
 
     fn try_from(value: SurrealValue) -> Result<Self, Self::Error> {
@@ -87,6 +90,7 @@ macro_rules! impl_surreal_value_try_from {
     };
 }
 
+impl_surreal_value_try_from!(surrealdb::sql::Value::Thing(it) => it => Thing);
 impl_surreal_value_try_from!(surrealdb::sql::Value::Strand(it) => it.to_string() => String);
 impl_surreal_value_try_from!(surrealdb::sql::Value::Number(it) => try_into it.to_usize() => u8);
 impl_surreal_value_try_from!(surrealdb::sql::Value::Number(it) => try_into it.to_usize() => u16);
@@ -114,6 +118,18 @@ impl Into<SurrealValue> for String {
         SurrealValue(Value::Strand(surrealdb::sql::Strand(self)))
     }
 }
+
+macro_rules! impl_into_surreal_value {
+    ($type:ty) => {
+        impl Into<SurrealValue> for $type {
+            fn into(self) -> SurrealValue {
+                SurrealValue(surrealdb::sql::Value::from(self))
+            }
+        }
+    };
+}
+
+impl_into_surreal_value!(Thing);
 
 macro_rules! impl_int_into_surreal_value {
     ($type:ty) => {
@@ -168,9 +184,9 @@ pub fn surreal_value_to_row<R: SurrealDbRow>(
 ) -> Result<R, SurrealDbSchemaDeriveQueryError> {
     let SurrealValue(mut value) = surreal_value;
     let id = if let Value::Object(ref mut object_value) = value {
-        if let Some(id_value) = object_value.remove("id") {
+        if let Some(id_value) = object_value.get("id") {
             if let Value::Thing(id_thing) = id_value {
-                Ok(id_thing.id)
+                Ok(id_thing.id.clone())
             } else {
                 Err(SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
                     InvalidValueTypeError {

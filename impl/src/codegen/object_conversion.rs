@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote};
-use syn::{FieldsNamed, Ident, Type, PathArguments, GenericArgument};
+use quote::quote;
+use syn::{FieldsNamed, GenericArgument, Ident, PathArguments, Type};
 
 pub(crate) fn gen_try_from_surreal_value(
     struct_ident: &Ident,
@@ -12,19 +12,38 @@ pub(crate) fn gen_try_from_surreal_value(
         .map(|field| {
             let field_ident = field.ident.clone().unwrap();
             if let Some(inner_type) = maybe_extract_optional(field) {
-                quote! {
-                    #field_ident: TryInto::<surrealdb_schema_derive::SurrealOption<#inner_type>>::try_into(
-                        surrealdb_schema_derive::SurrealValue(
-                            object_value.0.get(stringify!(name)).unwrap().clone(),
-                        )
-                    )?.into()
-                }
+    quote! {
+                        
+                        #field_ident: TryInto::<surrealdb_schema_derive::SurrealOption<#inner_type>>::try_into(
+                            surrealdb_schema_derive::SurrealValue(
+                                object_value.0.get(stringify!(name)).unwrap().clone(),
+                            )
+                        )?.into()
+                    }
             } else {
+                let field_str = format!("{}", field_ident);
+                if field_str.eq("id") {
+                    quote! {
+                        #field_ident: surrealdb_schema_derive::SurrealValue(
+                            {
+                                let id = object_value.0.get(stringify!(#field_ident)).unwrap().clone().record().unwrap().id;
+                                match id {
+                                    Id::Number(v) => Value::from(v),
+                                    Id::String(v) => Value::from(v),
+                                    Id::Array(v) => Value::from(v),
+                                    Id::Object(v) => Value::from(v),
+                                }
+                            }
+                        ).try_into()?
+                    }
+                } else {
+
                 quote! {
                     #field_ident: surrealdb_schema_derive::SurrealValue(
                         object_value.0.get(stringify!(#field_ident)).unwrap().clone()
                     ).try_into()?
                 }
+            }
             }
         })
         .collect();

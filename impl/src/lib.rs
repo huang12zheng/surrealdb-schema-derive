@@ -40,30 +40,17 @@ pub struct DefineTableArgs<'a> {
 pub trait SurrealDbObject:
     TryFrom<SurrealValue, Error = SurrealDbSchemaDeriveQueryError> + Into<SurrealValue>
 {
-    fn get_field_definitions(
-        on_table: &String,
-        path_prefix: &Vec<sql::Part>,
-    ) -> surrealdb::sql::Statements;
-
     fn get_table_name() -> String;
-
-    fn get_id(&self) -> u64;
 }
 
 #[async_trait]
 pub trait SurrealDbTable: SurrealDbObject {
     type Row: std::ops::Deref<Target = Self>;
 
-    async fn define_table<'a>(args: &'a DefineTableArgs<'a>) -> Result<()>;
+    async fn fetch_from_datastore(id: u64) -> Result<Option<Self::Row>>;
 
-    async fn fetch_from_datastore(
-        id: String,
-        datastore: &Datastore,
-        session: &Session,
-    ) -> Result<Option<Self::Row>>;
-
-    async fn save_to_datastore(self, datastore: &Datastore, session: &Session)
-        -> Result<Self::Row>;
+    async fn save_to_datastore(self) -> Result<Self::Row>;
+    async fn delete_to_datastore(id: u64) -> bool;
 }
 
 pub trait SurrealDbRow: Deref<Target = Self::Table> + Into<Self::Table>
@@ -96,15 +83,15 @@ fn gen_surreal_db_object(
         #impl_into_surreal_value
 
         impl SurrealDbObject for #struct_ident {
-            #fn_get_field_definitions
+
 
             fn get_table_name() -> String {
                 stringify!(#struct_ident).into()
             }
 
-            fn get_id(&self) -> u64 {
-                self.id
-            }
+
+
+
         }
     }));
 }
@@ -118,6 +105,7 @@ pub fn derive_surreal_db_table(_item: TokenStream) -> Result<TokenStream, syn::E
     let fn_define_table = define_statements::gen_fn_define_table(&struct_ident);
     let fn_fetch_from_datastore = crud_statements::gen_fn_fetch_from_datastore(&struct_ident);
     let fn_save_to_datastore = crud_statements::gen_fn_save_to_datastore(&struct_ident);
+    let fn_delete_to_datastore = crud_statements::gen_fn_delete_to_datastore(&struct_ident);
     return Ok(TokenStream::from(quote! {
         #surreal_db_object
 
@@ -126,9 +114,10 @@ pub fn derive_surreal_db_table(_item: TokenStream) -> Result<TokenStream, syn::E
         #[surrealdb_schema_derive::async_trait::async_trait]
         impl SurrealDbTable for #struct_ident {
             type Row = #row_struct_name;
-            #fn_define_table
+
             #fn_fetch_from_datastore
             #fn_save_to_datastore
+            #fn_delete_to_datastore
         }
     }));
 }
