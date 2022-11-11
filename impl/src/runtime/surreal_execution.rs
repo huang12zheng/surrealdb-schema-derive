@@ -17,7 +17,7 @@ where
     <T as TryFrom<SurrealValue>>::Error: Sync,
     <T as TryFrom<SurrealValue>>::Error: 'static,
 {
-    let mut responses = datastore.process(query, session, None, true).await?;
+    let mut responses = datastore.process(query, session, None, false).await?;
 
     if responses.len() != 1 {
         bail!("Surrealdb returned the wrong number of query results");
