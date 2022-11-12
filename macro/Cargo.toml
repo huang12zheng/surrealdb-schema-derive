@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "surrealdb-obj-derive-macro"
 repository = "https://github.com/huang12zheng/surrealdb-schema-derive/"
-version = "0.1.0"
+version = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,5 +14,5 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1"
 quote = "1"
-surrealdb-obj-derive-impl = {version = "=0.1.0", path = "../impl"}
+surrealdb-obj-derive-impl = {version = "=0.1.1", path = "../impl"}
 syn = {version = "1", features = ["full", "extra-traits"]}
