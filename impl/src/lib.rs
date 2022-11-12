@@ -49,21 +49,20 @@ fn gen_surreal_db_object(
     let impl_try_from_surreal_value =
         object_conversion::gen_try_from_surreal_value(&struct_ident, &fields);
     let impl_into_surreal_value = object_conversion::gen_into_surreal_value(&struct_ident, &fields);
+    let impl_display_object = object_display::gen_display_object(&struct_ident);
     return Ok(TokenStream::from(quote! {
         #impl_try_from_surreal_value
         #impl_into_surreal_value
+        #impl_display_object
 
         impl SurrealDbObject for #struct_ident {
-
 
             fn get_table_name() -> String {
                 stringify!(#struct_ident).into()
             }
-
-
-
-
         }
+
+
     }));
 }
 
