@@ -10,7 +10,7 @@ pub struct Relation {
     pub with: Thing,
 }
 
-impl TryFrom<surrealdb_obj_derive::SurrealValue> for Relation {}
+impl Into<surrealdb_obj_derive::surrealdb::sql::Value> for Relation {}
 ```
 > ref to crate schema
 

@@ -2,15 +2,12 @@
 
 mod codegen;
 mod errors;
-pub mod runtime;
 
 use codegen::*;
 use derive_builder::Builder;
 pub use errors::*;
 use proc_macro2::TokenStream;
 use quote::quote;
-pub use runtime::surreal_value_primitives::*;
-pub use runtime::surreal_value_primitives::{SurrealOption, SurrealValue};
 use surrealdb::{self, Datastore, Session};
 use syn::{parse2, spanned::Spanned, Data, DeriveInput, Fields, FieldsNamed, Ident};
 
@@ -27,12 +24,7 @@ pub struct DefineTableArgs<'a> {
     #[builder(setter(into, strip_option), default)]
     pub context: Option<DefineTableContext>,
 }
-
-pub trait SurrealDbObject:
-    TryFrom<SurrealValue, Error = SurrealDbSchemaDeriveQueryError> + Into<SurrealValue>
-{
-    fn get_table_name() -> String;
-}
+pub trait SurrealDbObject: Into<surrealdb::sql::Value> {}
 
 #[doc(hidden)]
 pub fn derive_surreal_db_object(_item: TokenStream) -> Result<TokenStream, syn::Error> {
@@ -49,15 +41,6 @@ fn gen_surreal_db_object(
     return Ok(TokenStream::from(quote! {
         #impl_into_surreal_value
         #impl_display_object
-
-        impl SurrealDbObject for #struct_ident {
-
-            fn get_table_name() -> String {
-                stringify!(#struct_ident).into()
-            }
-        }
-
-
     }));
 }
 

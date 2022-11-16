@@ -2,57 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{FieldsNamed, GenericArgument, Ident, PathArguments, Type};
 
-pub(crate) fn gen_try_from_surreal_value(
-    struct_ident: &Ident,
-    fields: &FieldsNamed,
-) -> TokenStream {
-    let field_definitions: Vec<TokenStream> = fields
-        .named
-        .iter()
-        .map(|field| {
-            let field_ident = field.ident.clone().unwrap();
-            if let Some(inner_type) = maybe_extract_optional(field) {
-    quote! {
-                        
-                        #field_ident: TryInto::<surrealdb_obj_derive::SurrealOption<#inner_type>>::try_into(
-                            surrealdb_obj_derive::SurrealValue(
-                                object_value.0.get(stringify!(name)).unwrap().clone(),
-                            )
-                        )?.into()
-                    }
-            } else {
-                 quote! {
-                #field_ident: surrealdb_obj_derive::SurrealValue(
-                    object_value.0.get(stringify!(#field_ident)).unwrap().clone()
-                ).try_into()?
-            }
-            }
-        })
-        .collect();
-
-    quote! {
-        impl TryFrom<surrealdb_obj_derive::SurrealValue> for #struct_ident {
-            type Error = surrealdb_obj_derive::SurrealDbSchemaDeriveQueryError;
-
-            fn try_from(value: surrealdb_obj_derive::SurrealValue) -> Result<Self, Self::Error> {
-                if let surrealdb_obj_derive::surrealdb::sql::Value::Object(object_value) = value.0 {
-                    Ok(Self {
-                        #(#field_definitions),*
-                    })
-                } else {
-                    Err(surrealdb_obj_derive::SurrealDbSchemaDeriveQueryError::InvalidValueTypeError(
-                        surrealdb_obj_derive::InvalidValueTypeError {
-                            expected_type: stringify!(#struct_ident).into(),
-                            received_type: value.0.to_string(),
-                        }
-                    ))
-                }
-            }
-        }
-    }
-}
-
-pub(crate) fn gen_into_surreal_value(struct_ident: &Ident, fields: &FieldsNamed) -> TokenStream {
+pub(crate) fn gen_into_value(struct_ident: &Ident, fields: &FieldsNamed) -> TokenStream {
     let field_conversions: Vec<TokenStream> = fields
         .named
         .iter()
@@ -65,22 +15,20 @@ pub(crate) fn gen_into_surreal_value(struct_ident: &Ident, fields: &FieldsNamed)
             };
             quote! {
                 (stringify!(#field_ident).into(), {
-                    let surreal_value: surrealdb_obj_derive::SurrealValue = #field_ref.into();
-                    surreal_value.into()
+                    let surreal_value: surrealdb_obj_derive::surrealdb::sql::Value = #field_ref.into();
+                    surreal_value
                 })
             }
         })
         .collect();
 
     quote! {
-        impl Into<surrealdb_obj_derive::SurrealValue> for #struct_ident {
-            fn into(self) -> surrealdb_obj_derive::SurrealValue {
-                surrealdb_obj_derive::SurrealValue(
-                    surrealdb_obj_derive::surrealdb::sql::Value::Object(
-                        surrealdb_obj_derive::surrealdb::sql::Object(std::collections::BTreeMap::from([
-                            #(#field_conversions),*
-                        ]))
-                    )
+        impl Into<surrealdb_obj_derive::surrealdb::sql::Value> for #struct_ident {
+            fn into(self) -> surrealdb_obj_derive::surrealdb::sql::Value {
+                surrealdb_obj_derive::surrealdb::sql::Value::Object(
+                    surrealdb_obj_derive::surrealdb::sql::Object(std::collections::BTreeMap::from([
+                        #(#field_conversions),*
+                    ]))
                 )
             }
         }
