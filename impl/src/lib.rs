@@ -4,8 +4,6 @@ mod codegen;
 mod errors;
 pub mod runtime;
 
-use anyhow::Result;
-
 use codegen::*;
 use derive_builder::Builder;
 pub use errors::*;
@@ -46,12 +44,9 @@ fn gen_surreal_db_object(
     struct_ident: &Ident,
     fields: &FieldsNamed,
 ) -> Result<TokenStream, syn::Error> {
-    let impl_try_from_surreal_value =
-        object_conversion::gen_try_from_surreal_value(&struct_ident, &fields);
-    let impl_into_surreal_value = object_conversion::gen_into_surreal_value(&struct_ident, &fields);
+    let impl_into_surreal_value = object_conversion::gen_into_value(&struct_ident, &fields);
     let impl_display_object = object_display::gen_display_object(&struct_ident);
     return Ok(TokenStream::from(quote! {
-        #impl_try_from_surreal_value
         #impl_into_surreal_value
         #impl_display_object
 
@@ -90,38 +85,26 @@ fn extract_derive_struct(struct_stream: TokenStream) -> Result<(Ident, FieldsNam
 
 #[cfg(test)]
 mod tests {
-    use prettyplease;
-    use syn::File;
+    use insta::assert_debug_snapshot;
 
     use super::*;
 
     #[test]
     fn derives_simple_struct() {
-        assert!(parse2::<File>(
-            derive_surreal_db_object(quote! {
-                struct MyStruct {
-                    name: String,
-                    count: u8,
-                    value: isize,
-                }
-            })
-            .unwrap()
-        )
-        .is_ok());
-        println!(
-            "{}",
-            prettyplease::unparse(
-                &parse2::<File>(
-                    derive_surreal_db_object(quote! {
-                        struct RustStruct {
-                            name: Option<String>,
-                            generics: RustGenerics,
-                        }
-                    })
-                    .unwrap()
-                )
-                .unwrap()
-            )
-        );
+        assert_debug_snapshot!(derive_surreal_db_object(quote! {
+            struct MyStruct {
+                name: String,
+                count: u8,
+                value: isize,
+            }
+        })
+        .unwrap());
+        assert_debug_snapshot!(derive_surreal_db_object(quote! {
+            struct RustStruct {
+                name: Option<String>,
+                generics: RustGenerics,
+            }
+        })
+        .unwrap());
     }
 }

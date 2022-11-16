@@ -26,7 +26,7 @@ pub struct Mobile {
 * release
 ```
 cargo install cargo-release
-cargo release publish --workspace --registry crates-io --execute
-cargo release push  --execute
+cargo release publish --workspace --execute
+cargo release push --no-tag --execute
 # cargo publish --no-verify
 ```
