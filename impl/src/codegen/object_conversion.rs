@@ -8,16 +8,14 @@ pub(crate) fn gen_into_value(struct_ident: &Ident, fields: &FieldsNamed) -> Toke
         .iter()
         .map(|field| {
             let field_ident = field.ident.clone().unwrap();
-            let field_ref = if maybe_extract_optional(field).is_some() {
-                quote! {surrealdb_obj_derive::SurrealOption(self.#field_ident)}
-            } else {
-                quote! {self.#field_ident}
-            };
+            let field_ref =
+                if maybe_extract_optional(field).is_some() || maybe_extract_vec(field).is_some() {
+                    quote! {IntoValue::into(self.#field_ident)}
+                } else {
+                    quote! {self.#field_ident.into()}
+                };
             quote! {
-                (stringify!(#field_ident).into(), {
-                    let surreal_value: surrealdb_obj_derive::surrealdb::sql::Value = #field_ref.into();
-                    surreal_value
-                })
+                (stringify!(#field_ident).into(),#field_ref)
             }
         })
         .collect();
@@ -30,6 +28,12 @@ pub(crate) fn gen_into_value(struct_ident: &Ident, fields: &FieldsNamed) -> Toke
                         #(#field_conversions),*
                     ]))
                 )
+            }
+        }
+
+        impl CompressionWith for #struct_ident {
+            fn compression_with(value: surrealdb_obj_derive::surrealdb::sql::Value) -> Self {
+                deserialize::<#struct_ident>(serialize(value))
             }
         }
     }
@@ -48,6 +52,31 @@ fn maybe_extract_optional(field: &syn::Field) -> Option<Type> {
                     }
                 } else {
                     panic!("Invalid option: {:?}", path_type);
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+fn maybe_extract_vec(field: &syn::Field) -> Option<Type> {
+    if let Type::Path(ref path_type) = field.ty {
+        if let Some(first) = path_type.path.segments.first() {
+            if first.ident == "Vec" {
+                if let PathArguments::AngleBracketed(angle_bracketed) = &first.arguments {
+                    let first_arg = angle_bracketed.args.first();
+                    if let Some(GenericArgument::Type(inner_type)) = first_arg {
+                        Some(inner_type.clone())
+                    } else {
+                        panic!("Invalid Vec: {:?}", path_type);
+                    }
+                } else {
+                    panic!("Invalid Vec: {:?}", path_type);
                 }
             } else {
                 None

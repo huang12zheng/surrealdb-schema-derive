@@ -14,7 +14,29 @@ TokenStream [
         spacing: Alone,
     },
     Ident {
+        sym: surrealdb_obj_derive,
+    },
+    Punct {
+        char: ':',
+        spacing: Joint,
+    },
+    Punct {
+        char: ':',
+        spacing: Alone,
+    },
+    Ident {
         sym: surrealdb,
+    },
+    Punct {
+        char: ':',
+        spacing: Joint,
+    },
+    Punct {
+        char: ':',
+        spacing: Alone,
+    },
+    Ident {
+        sym: sql,
     },
     Punct {
         char: ':',
@@ -63,7 +85,29 @@ TokenStream [
                 spacing: Alone,
             },
             Ident {
+                sym: surrealdb_obj_derive,
+            },
+            Punct {
+                char: ':',
+                spacing: Joint,
+            },
+            Punct {
+                char: ':',
+                spacing: Alone,
+            },
+            Ident {
                 sym: surrealdb,
+            },
+            Punct {
+                char: ':',
+                spacing: Joint,
+            },
+            Punct {
+                char: ':',
+                spacing: Alone,
+            },
+            Ident {
+                sym: sql,
             },
             Punct {
                 char: ':',
@@ -243,83 +287,32 @@ TokenStream [
                                                                 char: ',',
                                                                 spacing: Alone,
                                                             },
+                                                            Ident {
+                                                                sym: IntoValue,
+                                                            },
+                                                            Punct {
+                                                                char: ':',
+                                                                spacing: Joint,
+                                                            },
+                                                            Punct {
+                                                                char: ':',
+                                                                spacing: Alone,
+                                                            },
+                                                            Ident {
+                                                                sym: into,
+                                                            },
                                                             Group {
-                                                                delimiter: Brace,
+                                                                delimiter: Parenthesis,
                                                                 stream: TokenStream [
                                                                     Ident {
-                                                                        sym: let,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surreal_value,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surrealdb,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Joint,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: Value,
-                                                                    },
-                                                                    Punct {
-                                                                        char: '=',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surrealdb_obj_derive,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Joint,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: SurrealOption,
-                                                                    },
-                                                                    Group {
-                                                                        delimiter: Parenthesis,
-                                                                        stream: TokenStream [
-                                                                            Ident {
-                                                                                sym: self,
-                                                                            },
-                                                                            Punct {
-                                                                                char: '.',
-                                                                                spacing: Alone,
-                                                                            },
-                                                                            Ident {
-                                                                                sym: name,
-                                                                            },
-                                                                        ],
+                                                                        sym: self,
                                                                     },
                                                                     Punct {
                                                                         char: '.',
                                                                         spacing: Alone,
                                                                     },
                                                                     Ident {
-                                                                        sym: into,
-                                                                    },
-                                                                    Group {
-                                                                        delimiter: Parenthesis,
-                                                                        stream: TokenStream [],
-                                                                    },
-                                                                    Punct {
-                                                                        char: ';',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surreal_value,
+                                                                        sym: name,
                                                                     },
                                                                 ],
                                                             },
@@ -362,72 +355,157 @@ TokenStream [
                                                                 char: ',',
                                                                 spacing: Alone,
                                                             },
+                                                            Ident {
+                                                                sym: self,
+                                                            },
+                                                            Punct {
+                                                                char: '.',
+                                                                spacing: Alone,
+                                                            },
+                                                            Ident {
+                                                                sym: generics,
+                                                            },
+                                                            Punct {
+                                                                char: '.',
+                                                                spacing: Alone,
+                                                            },
+                                                            Ident {
+                                                                sym: into,
+                                                            },
                                                             Group {
-                                                                delimiter: Brace,
-                                                                stream: TokenStream [
-                                                                    Ident {
-                                                                        sym: let,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surreal_value,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surrealdb,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Joint,
-                                                                    },
-                                                                    Punct {
-                                                                        char: ':',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: Value,
-                                                                    },
-                                                                    Punct {
-                                                                        char: '=',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: self,
-                                                                    },
-                                                                    Punct {
-                                                                        char: '.',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: generics,
-                                                                    },
-                                                                    Punct {
-                                                                        char: '.',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: into,
-                                                                    },
-                                                                    Group {
-                                                                        delimiter: Parenthesis,
-                                                                        stream: TokenStream [],
-                                                                    },
-                                                                    Punct {
-                                                                        char: ';',
-                                                                        spacing: Alone,
-                                                                    },
-                                                                    Ident {
-                                                                        sym: surreal_value,
-                                                                    },
-                                                                ],
+                                                                delimiter: Parenthesis,
+                                                                stream: TokenStream [],
                                                             },
                                                         ],
                                                     },
                                                 ],
                                             },
                                         ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+    Ident {
+        sym: impl,
+    },
+    Ident {
+        sym: CompressionWith,
+    },
+    Ident {
+        sym: for,
+    },
+    Ident {
+        sym: RustStruct,
+    },
+    Group {
+        delimiter: Brace,
+        stream: TokenStream [
+            Ident {
+                sym: fn,
+            },
+            Ident {
+                sym: compression_with,
+            },
+            Group {
+                delimiter: Parenthesis,
+                stream: TokenStream [
+                    Ident {
+                        sym: value,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Alone,
+                    },
+                    Ident {
+                        sym: surrealdb_obj_derive,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Joint,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Alone,
+                    },
+                    Ident {
+                        sym: surrealdb,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Joint,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Alone,
+                    },
+                    Ident {
+                        sym: sql,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Joint,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Alone,
+                    },
+                    Ident {
+                        sym: Value,
+                    },
+                ],
+            },
+            Punct {
+                char: '-',
+                spacing: Joint,
+            },
+            Punct {
+                char: '>',
+                spacing: Alone,
+            },
+            Ident {
+                sym: Self,
+            },
+            Group {
+                delimiter: Brace,
+                stream: TokenStream [
+                    Ident {
+                        sym: deserialize,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Joint,
+                    },
+                    Punct {
+                        char: ':',
+                        spacing: Alone,
+                    },
+                    Punct {
+                        char: '<',
+                        spacing: Alone,
+                    },
+                    Ident {
+                        sym: RustStruct,
+                    },
+                    Punct {
+                        char: '>',
+                        spacing: Alone,
+                    },
+                    Group {
+                        delimiter: Parenthesis,
+                        stream: TokenStream [
+                            Ident {
+                                sym: serialize,
+                            },
+                            Group {
+                                delimiter: Parenthesis,
+                                stream: TokenStream [
+                                    Ident {
+                                        sym: value,
                                     },
                                 ],
                             },
@@ -626,7 +704,7 @@ TokenStream [
                                 spacing: Alone,
                             },
                             Ident {
-                                sym: SurrealValue,
+                                sym: Value,
                             },
                             Punct {
                                 char: '>',
@@ -662,83 +740,7 @@ TokenStream [
                                     },
                                 ],
                             },
-                            Punct {
-                                char: '.',
-                                spacing: Alone,
-                            },
-                            Literal {
-                                lit: 0,
-                            },
                         ],
-                    },
-                ],
-            },
-        ],
-    },
-    Ident {
-        sym: impl,
-    },
-    Ident {
-        sym: SurrealDbObject,
-    },
-    Ident {
-        sym: for,
-    },
-    Ident {
-        sym: RustStruct,
-    },
-    Group {
-        delimiter: Brace,
-        stream: TokenStream [
-            Ident {
-                sym: fn,
-            },
-            Ident {
-                sym: get_table_name,
-            },
-            Group {
-                delimiter: Parenthesis,
-                stream: TokenStream [],
-            },
-            Punct {
-                char: '-',
-                spacing: Joint,
-            },
-            Punct {
-                char: '>',
-                spacing: Alone,
-            },
-            Ident {
-                sym: String,
-            },
-            Group {
-                delimiter: Brace,
-                stream: TokenStream [
-                    Ident {
-                        sym: stringify,
-                    },
-                    Punct {
-                        char: '!',
-                        spacing: Alone,
-                    },
-                    Group {
-                        delimiter: Parenthesis,
-                        stream: TokenStream [
-                            Ident {
-                                sym: RustStruct,
-                            },
-                        ],
-                    },
-                    Punct {
-                        char: '.',
-                        spacing: Alone,
-                    },
-                    Ident {
-                        sym: into,
-                    },
-                    Group {
-                        delimiter: Parenthesis,
-                        stream: TokenStream [],
                     },
                 ],
             },

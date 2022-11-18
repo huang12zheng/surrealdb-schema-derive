@@ -89,5 +89,11 @@ mod tests {
             }
         })
         .unwrap());
+        // assert_debug_snapshot!(quote! {
+        //     struct MyVec {
+        //         name: Vec<u32>,
+        //         opt: Option<Vec<u32>>
+        //     }
+        // });
     }
 }

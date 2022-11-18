@@ -9,3 +9,12 @@ impl<T: Into<Value>> IntoValue for Vec<T> {
         Value::from(self.into_iter().map(|e| e.into()).collect::<Vec<Value>>())
     }
 }
+
+impl<T: Into<Value>> IntoValue for Option<T> {
+    fn into(self) -> Value {
+        match self {
+            Some(v) => v.into(),
+            None => Value::None,
+        }
+    }
+}
